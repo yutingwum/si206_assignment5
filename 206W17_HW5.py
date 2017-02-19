@@ -2,11 +2,12 @@ import unittest
 import tweepy
 import requests
 import json
+import twitter_info
 
 ## SI 206 - W17 - HW5
-## COMMENT WITH:
-## Your section day/time:
-## Any names of people you worked with on this assignment:
+## COMMENT WITH: Yuting Wu
+## Your section day/time: Thursday 6 -7 PM
+## Any names of people you worked with on this assignment: Piazza posts
 
 ######## 500 points total ########
 
@@ -35,16 +36,95 @@ import json
 ## **** If you choose not to do that, we strongly advise using authentication information for an 'extra' Twitter account you make just for this class, and not your personal account, because it's not ideal to share your authentication information for a real account that you use frequently.
 
 ## Get your secret values to authenticate to Twitter. You may replace each of these with variables rather than filling in the empty strings if you choose to do the secure way for 50 EC points
-consumer_key = "" 
-consumer_secret = ""
-access_token = ""
-access_token_secret = ""
+consumer_key = twitter_info.consumer_key
+consumer_secret = twitter_info.consumer_secret
+access_token = twitter_info.access_token
+access_token_secret = twitter_info.access_token_secret
 ## Set up your authentication to Twitter
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth, parser=tweepy.parsers.JSONParser()) # Set up library to grab stuff from twitter with your authentication, and return it in a JSON-formatted way
 
+phrase_input = input("Enter the phrase you want to search for: ")
+public_tweets = api.search(q=phrase_input)
+
 ## Write the rest of your code here!
+## 1. Set up the caching pattern start -- the dictionary and the try/except statement shown in class.
+
+try:
+	x = open('tweet_cache.txt', 'r')
+	cached_data = json.loads(x.read())
+	x.close()
+except:
+	
+	f = open('tweet_cache.txt', 'w')
+	f.write(json.dumps(public_tweets))
+	f.close()
+
+# CACHE_FNAME = "cached_data_socialmedia.json"
+# try:
+# 	cache_file = open(CACHE_FNAME,'r')
+# 	cache_contents = cache_file.read()
+# 	CACHE_DICTION = json.loads(cache_contents)
+# 	cache_file.close()
+# except:
+# 	CACHE_DICTION = {}
+
+
+
+## 2. Write a function to get twitter data that works with the caching pattern, so it either gets new data or caches data, depending upon what the input to search for is. You can model this off the class exercise from Tuesday.
+def get_tweets_data(phrase):
+	unique_identifier = "twitter_{}".format(phrase) # seestring formatting chapter
+	# see if that username+twitter is in the cache diction!
+	if unique_identifier in cached_data: # if it is...
+		print('using cached data for', phrase)
+		twitter_results = cached_data[unique_identifier] # grab the data from the cache!
+	else:
+		print('getting data from internet for', phrase)
+		twitter_results = api.user_timeline(phrase) # get it from the internet
+		# but also, save in the dictionary to cache it!
+		cached_data[unique_identifier] = twitter_results # add it to the dictionary -- new key-val pair
+		# and then write the whole cache dictionary, now with new info added, to the file, so it'll be there even after your program closes!
+		f = open('tweet_cache.txt','w') # open the cache file for writing
+		f.write(json.dumps(cached_data)) # make the whole dictionary holding data and unique identifiers into a json-formatted string, and write that wholllle string to a file so you'll have it next time!
+		f.close()
+
+	# print(twitter_results)
+	return twitter_results
+
+	# now no matter what, you have what you need in the twitter_results variable still, go back to what we were doing!
+
+
+
+## 3. Invoke your function, save the return value in a variable, and explore the data you got back!
+tweets = get_tweets_data(phrase_input)
+
+
+## 4. With what you learn from the data -- e.g. how exactly to find the text of each tweet in the big nested structure -- write code to print out content from 3 tweets, as shown above.	
+tweet_texts = [] # collect 'em all!
+for tweet in tweets:
+	tweet_texts.append(tweet["text"])
+
+
+tweet_timeline = []
+for tweet in tweets:
+	tweet_timeline.append(tweet["created_at"])
+
+
+print("NOW ABOUT TO PRINT TWEETS")
+for i in range(3):
+	print("TWEET TEXT: ", tweet_texts[i])
+	print("Created At: ", tweet_timeline[i])
+	print("\n\n")
+
+# tweet_dict = {}
+
+
+# three_tweets = get_tweets_data(phrase_input) # try with your own username, too! or other umich usernames!
+# for t in three_tweets:
+# 	print("TWEET TEXT:", t)
+# 	print("\n")
+
 
 
 #### Recommended order of tasks: ####
