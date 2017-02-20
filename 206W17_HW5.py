@@ -74,25 +74,22 @@ except:
 
 ## 2. Write a function to get twitter data that works with the caching pattern, so it either gets new data or caches data, depending upon what the input to search for is. You can model this off the class exercise from Tuesday.
 def get_tweets_data(phrase):
-	unique_identifier = "twitter_{}".format(phrase) # seestring formatting chapter
-	# see if that username+twitter is in the cache diction!
+	unique_identifier = "twitter_{}".format(phrase) 
 	if unique_identifier in cached_data: # if it is...
 		print('using cached data for', phrase)
-		twitter_results = cached_data[unique_identifier] # grab the data from the cache!
+		twitter_results = cached_data[unique_identifier] # grab the data from the cache
 	else:
 		print('getting data from internet for', phrase)
 		twitter_results = api.user_timeline(phrase) # get it from the internet
-		# but also, save in the dictionary to cache it!
+		# but also, save in the dictionary to cache it
 		cached_data[unique_identifier] = twitter_results # add it to the dictionary -- new key-val pair
 		# and then write the whole cache dictionary, now with new info added, to the file, so it'll be there even after your program closes!
 		f = open('tweet_cache.txt','w') # open the cache file for writing
 		f.write(json.dumps(cached_data)) # make the whole dictionary holding data and unique identifiers into a json-formatted string, and write that wholllle string to a file so you'll have it next time!
 		f.close()
 
-	# print(twitter_results)
 	return twitter_results
-
-	# now no matter what, you have what you need in the twitter_results variable still, go back to what we were doing!
+	# the return format of data is a list of tweets (while tweet itself is a dictionary)
 
 
 
@@ -104,15 +101,17 @@ tweets = get_tweets_data(phrase_input)
 tweet_texts = [] # collect 'em all!
 for tweet in tweets:
 	tweet_texts.append(tweet["text"])
+# to create a list of tweet texts from the search result
 
 
 tweet_timeline = []
 for tweet in tweets:
 	tweet_timeline.append(tweet["created_at"])
+# to create a list of tweet timeline from the search result
 
 
 print("NOW ABOUT TO PRINT TWEETS")
-for i in range(3):
+for i in range(3): # only print 3
 	print("TWEET TEXT: ", tweet_texts[i])
 	print("Created At: ", tweet_timeline[i])
 	print("\n\n")
